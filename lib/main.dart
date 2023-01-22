@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.purple,
         scaffoldBackgroundColor:Colors.black,
       ),
+      debugShowCheckedModeBanner: false,
       home: const MyHomePage(title: 'Home Page'),
     );
   }
