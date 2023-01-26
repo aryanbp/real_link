@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1094588054418",
+    "project_id": "real-link-64ae6",
+    "storage_bucket": "real-link-64ae6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1094588054418:android:3dab6671905006dfd5df4b",
+        "android_client_info": {
+          "package_name": "com.example.real_link"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1094588054418-rv0jmlefag8f6ucbfbh5h4vuvh16kvq0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCueh3xKlRUqxqO_4G9FsL4uTmdDZesXRM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1094588054418-rv0jmlefag8f6ucbfbh5h4vuvh16kvq0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
