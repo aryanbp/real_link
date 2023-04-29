@@ -1,297 +1,410 @@
-import 'dart:async';
-
-import 'package:google_fonts/google_fonts.dart';
-
+import 'package:app_settings/app_settings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_scan_bluetooth/flutter_scan_bluetooth.dart';
+import 'package:real_link/firebase_options.dart';
 
-import 'me.dart';
+import 'aboutus.dart';
+import 'login.dart';
+import 'app.dart';
+import 'mall.dart';
 
 Future<void> main() async {
-  runApp(const MyApp());
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(Home());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
+class Home extends StatelessWidget {
+  Home({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    bool loggedIn = FirebaseAuth.instance.currentUser != null;
     return MaterialApp(
-      title: 'Link App',
-      theme: ThemeData(
-        textTheme: GoogleFonts.ubuntuTextTheme(
-          const TextTheme(
-            bodyText2: TextStyle(color: Colors.white),
-          ),
-        ),
-        primarySwatch: Colors.purple,
-        scaffoldBackgroundColor: Colors.black,
-      ),
       debugShowCheckedModeBanner: false,
-      home: const MyHomePage(title: 'Home Page'),
+      title: "Home",
+      theme: ThemeData(
+        colorScheme: ColorScheme.highContrastDark(),
+        textTheme: TextTheme(
+          headline1: TextStyle(color: Colors.black),
+          headline2: TextStyle(color: Colors.black),
+          bodyText2: TextStyle(color: Colors.black),
+          subtitle1: TextStyle(color: Colors.white),
+        ),
+      ),
+      themeMode: ThemeMode.system,
+      home: loggedIn ? homepage() : login(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+class homepage extends StatefulWidget {
+  const homepage({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<homepage> createState() => _homepageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _homepageState extends State<homepage> {
+  static List _data = [];
+  bool _scanning = false;
+  FlutterScanBluetooth _bluetooth = FlutterScanBluetooth();
+  int index = 0;
+  final List<Widget> _children = [
+    mainpage(),
+    //mall(),
+    aboutus(),
+  ];
+
+  bluescanner() async {
+    print("bluescanner");
+    try {
+      if (_scanning) {
+        await _bluetooth.stopScan();
+        debugPrint("scanning stoped");
+        setState(() {});
+      } else {
+        await _bluetooth.startScan(pairedDevices: false);
+        debugPrint("scanning started");
+        setState(() {
+          _scanning = false;
+        });
+      }
+    } on PlatformException catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.indigoAccent.shade100,
+        title: Text("Smart Home",style: TextStyle(color: Colors.black),),
+        automaticallyImplyLeading: true,
+        actions: [
+          IconButton(
+              onPressed: () {
+                _bluetooth.devices.listen((device) {
+                  if (!_data.contains(device) && device.paired) {
+                    _data.add(device);
+                  }
+                });
+                _bluetooth.scanStopped.listen((device) {
+                  _scanning = true;
+                  //_data.add('scan stopped\n');
+                });
+                bluescanner();
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) => const App()));
+              },
+              icon: Icon(Icons.add,color: Colors.black,)),
+        ],
+      ),
+      body: Column(
+        children: [
+          _children[index],
+        ],
+      ),
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(),
+        child: NavigationBar(
+          selectedIndex: index,
+          onDestinationSelected: (index) => setState(() => this.index = index),
+          destinations: [
+            NavigationDestination(icon: Icon(Icons.home), label: "Home"),
+            //NavigationDestination(icon:Icon(Icons.shopping_bag_outlined), label: "Mall"),
+            NavigationDestination(
+                icon: Icon(Icons.account_circle_rounded), label: "Profile"),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class mainpage extends StatefulWidget {
+  const mainpage({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<mainpage> createState() => _mainpageState();
+}
+
+class _mainpageState extends State<mainpage> {
+  static List _data = [];
+  bool _scanning = false;
+  FlutterScanBluetooth _bluetooth = FlutterScanBluetooth();
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), () {
-      var user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const ThirdScreen()));
-      } else {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const SecondScreen()));
+
+    _bluetooth.devices.listen((device) {
+      if (!_data.contains(device) && device.paired) {
+          _data.add(device);
       }
     });
+    _bluetooth.scanStopped.listen((device) {
+        _scanning = true;
+        //_data.add('scan stopped\n');
+    });
+    bluescanner();
+  }
+
+  bluescanner() async {
+    print("bluescanner");
+    try {
+      if (_scanning) {
+        await _bluetooth.stopScan();
+        debugPrint("scanning stoped");
+        setState(() {});
+      } else {
+        await _bluetooth.startScan(pairedDevices: true);
+        debugPrint("scanning started");
+        setState(() {
+          _scanning = false;
+        });
+      }
+    } on PlatformException catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset('assets/logo.png'),
-            const Text('Real_Link',
-                style: TextStyle(color: Colors.purple, fontSize: 50)),
-          ],
-        ),
-      ),
-      // color: Colors.black,
-      // child: Icon(
-      //   Icons.connect_without_contact_sharp,
-      //   color: Colors.deepPurple,
-      //   size: 300,
-      // )
-      //FlutterLogo(size:MediaQuery.of(context).size.height,textColor: Colors.purple,)
-    );
-  }
-}
-
-class SecondScreen extends StatefulWidget {
-  const SecondScreen({super.key});
-
-  @override
-  State<SecondScreen> createState() => _SecondScreenState();
-}
-
-class _SecondScreenState extends State<SecondScreen> {
-  final mycon = TextEditingController(text: '+91 7045614665');
-
-  String textholde = "Enter Your Phone No:";
-  String smsCode = '';
-  String verf = '';
-  int val = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          'Login Page',
-          style: GoogleFonts.ubuntu(),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(textholde, style: const TextStyle(fontSize: 20)),
-            Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: SizedBox(
-                width: 300,
-                child: TextField(
-                  decoration: InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.purpleAccent),
-                      borderRadius: BorderRadius.circular(50.0),
-                    ),
+    return Center(
+      child: Container(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                height: 50,
+                width: 200,
+                decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(25)),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 47, top: 13),
+                  child: Text(
+                    "My Devices",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white),
                   ),
-                  style: const TextStyle(color: Colors.white, fontSize: 20),
-                  autofocus: true,
-                  textAlign: TextAlign.center,
-                  controller: mycon,
                 ),
               ),
-            ),
-            TextButton(
-                onPressed: () async {
-                  FirebaseAuth auth = FirebaseAuth.instance;
-                  if (val == 0) {
-                    val = 1;
-                    setState(() {
-                      textholde = 'Authenticating...';
-                    });
-                    await FirebaseAuth.instance.verifyPhoneNumber(
-                      phoneNumber: mycon.text,
-                      verificationCompleted:
-                          (PhoneAuthCredential credential) async {
-                        // ANDROID ONLY!
-
-                        // Sign the user in (or link) with the auto-generated credential
-                        //await auth.signInWithCredential(credential);
-                      },
-                      verificationFailed: (FirebaseAuthException e) {
-                        if (e.code == 'invalid-phone-number') {
-                          setState(() {
-                            textholde =
-                                'The provided phone number is not valid.';
-                          });
-                        }
-
-                        // Handle other errors
-                      },
-                      codeSent:
-                          (String verificationId, int? resendToken) async {
-                        // Update the UI - wait for the user to enter the SMS code
-                        setState(() {
-                          textholde = 'Enter OTP: ';
-                        });
-                        mycon.clear();
-                        verf = verificationId;
-
-                        // Create a PhoneAuthCredential with the code
-                      },
-                      codeAutoRetrievalTimeout: (String verificationId) {
-                        // Auto-resolution timed out...
-                      },
-                    );
-                  } else {
-                    val = 0;
-                    smsCode = mycon.text;
-                    PhoneAuthCredential credential =
-                        PhoneAuthProvider.credential(
-                            verificationId: verf, smsCode: smsCode);
-                    // Sign the user in (or link) with the credential
-                    await auth.signInWithCredential(credential);
-                    setState(() {
-                      //textholde = 'Done!!!! ';
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const ThirdScreen()));
-                    });
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.purpleAccent),
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(50),
-                        ),
-                      ),
-                      child: const Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: Text(
-                          'Click Me',
-                          style: TextStyle(color: Colors.white, fontSize: 20),
-                        ),
-                      )),
-                ))
-          ],
+              // SizedBox(
+              //   height: 20,
+              // ),
+              // Padding(
+              //   padding: const EdgeInsets.only(left: 11.0,top:20),
+              //   child: Row(
+              //     children: [
+              //       smartdevice(img: "download.jpg", title: "Smart  Bulb",subtitle: "Working",),
+              //       SizedBox(width: 20,),
+              //       smartdevice(img: "cam.jpg", title: "Smart Camera",subtitle:"Working",)
+              //     ],
+              //   ),
+              // ),
+              // SizedBox(
+              //   height: 20,
+              // ),
+              // Padding(
+              //   padding: const EdgeInsets.only(left: 11.0),
+              //   child: Row(
+              //     children: [
+              //       smartdevice(img: "rob.jpg", title: "Smart Robot",subtitle: "Working",),
+              //       SizedBox(width: 20,),
+              //       smartdevice(img: "watch.png", title: "Smart Watch",subtitle:"Working",)
+              //     ],
+              //   ),
+              // ),
+              SizedBox(
+                height: 20,
+              ),
+              SizedBox(
+                height: 500,
+                child: ListView.builder(
+                  itemCount: _data.length,
+                  itemBuilder: (context, index) {
+                    if (index%2==0 && index!=_data.length) {
+                      return screenDevice(_data[index],_data[index+1]);
+                    }
+                    else{
+                      return SizedBox(height:20,);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class ThirdScreen extends StatefulWidget {
-  const ThirdScreen({super.key});
-
-  @override
-  State<ThirdScreen> createState() => _ThirdScreenState();
+screenDevice(BluetoothDevice data,BluetoothDevice data1) {
+  print(data);
+  return Padding(
+    padding: const EdgeInsets.only(left: 11.0),
+    child: Row(
+      children: [
+        smartdevice(
+          img: "rob.jpg",
+          title: data.name,
+          subtitle: "Paired",
+          arr:data,
+        ),
+        SizedBox(
+          width: 20,
+        ),
+        smartdevice(
+          img: "watch.png",
+          title: data1.name,
+          subtitle: "Paired",
+          arr:data1,
+        )
+      ],
+    ),
+  );
 }
 
-class _ThirdScreenState extends State<ThirdScreen> {
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      if (index == 2) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Me(title: 'Me')),
-        );
-      }
-    });
-  }
+class smartdevice extends StatelessWidget {
+  final String img;
+  final String title;
+  final String subtitle;
+  final BluetoothDevice arr;
+  const smartdevice(
+      {Key? key,
+      required this.img,
+      required this.title,
+      required this.subtitle, required this.arr,})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          'Home Page',
-          style: GoogleFonts.ubuntu(),
-        ),
+    return Container(
+      height: 150,
+      width: 150,
+      decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(30)),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 10, top: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Image.asset(
+                  "assets/" + img,
+                  height: 50,
+                  width: 50,
+                ),
+                IconButton(
+                    onPressed: () {
+                      AppSettings.openBluetoothSettings();
+
+                      },
+                    icon: Icon(
+                      Icons.power_settings_new_outlined,
+                      color: Colors.indigoAccent,
+                    ))
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 5,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 10.0, right: 10.0),
+            child: Text(
+              title,
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16),textAlign: TextAlign.center,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 5, right: 10.0),
+            child: Text(
+              subtitle,
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.normal,
+                  fontSize: 14),
+            ),
+          ),
+        ],
       ),
-      body: Center(
+    );
+  }
+}
+
+class device extends StatelessWidget {
+  final String img;
+  final String title;
+  const device({
+    Key? key,
+    required this.img,
+    required this.title,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12),
+      child: Container(
+        height: 80,
+        width: 250,
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(30)),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const <Widget>[
-            Text(
-              'Welcome Home:',
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 10, top: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 1),
+                    child: Image.asset(
+                      "assets/" + img,
+                      height: 50,
+                      width: 50,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    child: Text(title,
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),textAlign: TextAlign.center,),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 1),
+                    child: IconButton(
+                      onPressed: () { AppSettings.openBluetoothSettings();},
+                      icon: Icon(Icons.add_card_rounded),
+                      color: Colors.black38,
+                      iconSize: 30,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home,
-              color: Colors.deepPurpleAccent,
-            ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.business,
-              color: Colors.deepPurpleAccent,
-            ),
-            label: 'Business',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.person,
-              color: Colors.deepPurpleAccent,
-            ),
-            label: ' Me',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.white,
-        onTap: _onItemTapped,
-        unselectedItemColor: Colors.grey,
       ),
     );
   }

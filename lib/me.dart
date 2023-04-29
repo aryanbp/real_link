@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -14,11 +15,14 @@ class Me extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
+        //Main
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            //First Box
             Container(
-              margin: EdgeInsets.only(left: 30, right: 30, top: 30, bottom: 0),
+              alignment: Alignment.center,
+              margin: const EdgeInsets.only(left: 30, right: 30, top: 30, bottom: 0),
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(50)),
                 color: Colors.white,
@@ -27,20 +31,20 @@ class Me extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Container(
-                    margin: EdgeInsets.all(20),
+                    margin: const EdgeInsets.all(20),
                     height: 50,
                     width: 50,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(50)),
                       color: Colors.black,
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.person,
                       color: Colors.white,
                     ),
                   ),
                   Column(
-                    children: [
+                    children: const [
                       Text(
                         "Umar Shaikh",
                         style: TextStyle(color: Colors.black),
@@ -54,9 +58,11 @@ class Me extends StatelessWidget {
                 ],
               ),
             ),
+            //Second Box
             Container(
+              alignment: Alignment.center,
               child: Container(
-                margin: EdgeInsets.all(30),
+                margin: const EdgeInsets.all(30),
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(50)),
                   color: Colors.white,
@@ -69,7 +75,7 @@ class Me extends StatelessWidget {
                           top: 20, bottom: 20, right: 15, left: 20),
                       child: Container(
                         child: Column(
-                          children: [
+                          children: const [
                             Icon(
                               Icons.message,
                               color: Colors.orangeAccent,
@@ -88,7 +94,7 @@ class Me extends StatelessWidget {
                           top: 20, bottom: 20, right: 15, left: 15),
                       child: Container(
                         child: Column(
-                          children: [
+                          children: const [
                             Icon(
                               Icons.note_alt_sharp,
                               color: Colors.green,
@@ -107,7 +113,7 @@ class Me extends StatelessWidget {
                           top: 20, bottom: 20, left: 15, right: 15),
                       child: Container(
                         child: Column(
-                          children: [
+                          children: const [
                             Icon(
                               Icons.question_answer,
                               color: Colors.purple,
@@ -125,96 +131,37 @@ class Me extends StatelessWidget {
                 ),
               ),
             ),
+
+            //Third Box
+
             Container(
-              child: Container(
-                margin: EdgeInsets.all(30),
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(50)),
-                  color: Colors.white,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Container(
-                        child: Row(
-                          children: [
-                            Container(
-                              child: Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: Icon(
-                                      Icons.arrow_circle_up,
-                                      color: Colors.black,
-                                      size: 40,
-                                    ),
-                                  ),
-                                  Text('Firmwareupdate',style: TextStyle(color: Colors.black),),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 70.0),
-                              child: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.grey,
-                              ),
-                            )
-                          ],
+
+              child: Column(
+                children: [
+                  Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.arrow_circle_up_outlined,
+                          color: Colors.blue,
                         ),
-                      ),
+                        Text('Firewall Update'),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.grey,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+
+
+                ],
+
               ),
             ),
-            Container(
-              child: Container(
-                margin: EdgeInsets.all(30),
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(50)),
-                  color: Colors.white,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Container(
-                        child: Row(
-                          children: [
-                            Container(
-                              child: Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: Icon(
-                                      Icons.keyboard_voice,
-                                      color: Colors.black,
-                                      size: 40,
-                                    ),
-                                  ),
-                                  Text('Voice Service',style: TextStyle(color: Colors.black),),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 70.0),
-                              child: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.grey,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+
+
             const Text(
               'Your Info',
             ),
@@ -224,28 +171,49 @@ class Me extends StatelessWidget {
       floatingActionButton: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Spacer(),
-          Spacer(),
+          const Spacer(),
+          const Spacer(),
       FloatingActionButton(
-              onPressed: () {
+              onPressed: () async {
+
+// Get a reference to the Firestore collection
+                CollectionReference collectionReference = FirebaseFirestore.instance.collection('user');
+
+                // Get a reference to all the documents in the collection
+                QuerySnapshot querySnapshot = await collectionReference.get();
+
+// Loop through all the documents
+                for (var documentSnapshot in querySnapshot.docs) {
+                  print("Hi");
+                  // print(documentSnapshot.id);
+                  // Check if the document meets the criteria
+                  // if (documentSnapshot.data() == '+91 7045614665') {
+                  //
+                  //   // Get a reference to the document
+                  //   // DocumentReference documentReference = collectionReference.doc(documentSnapshot.get('UNO'));
+                  //   //
+                  //   // // Delete the document
+                  //   // await documentReference.delete();
+                  // }
+                }
+
                 FirebaseAuth.instance.signOut();
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => MyHomePage(
-                              title: 'Splash Page',
+                        builder: (context) => Home(
                             )));
               },
               child: const Icon(Icons.logout),
             ),
-          Spacer(),
+          const Spacer(),
       FloatingActionButton(
               onPressed: () {
                 Navigator.pop(context);
               },
               child: const Icon(Icons.arrow_left),
             ),
-          Spacer(),
+          const Spacer(),
         ],
       ),
     );
