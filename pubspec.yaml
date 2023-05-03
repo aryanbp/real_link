@@ -41,6 +41,7 @@ dependencies:
   cloud_firestore: ^4.3.2
   flutter_scan_bluetooth: ^2.1.2
   app_settings: ^4.2.0
+  fluttertoast: ^8.2.1
 
 
 dev_dependencies:
