@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_scan_bluetooth/flutter_scan_bluetooth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'main.dart';
 
 class blue extends StatefulWidget {
@@ -19,7 +20,7 @@ class _blueState extends State<blue> {
   @override
   void initState() {
     super.initState();
-
+    bluescanner();
     _bluetooth.devices.listen((device) {
       if (!blue.up_data.contains(device)) {
         print("od");
@@ -30,22 +31,29 @@ class _blueState extends State<blue> {
       _scanning = false;
       //_data.add('scan stopped\n');
     });
-    bluescanner();
   }
 
-  bluescanner() async {
+  void bluescanner() async {
     print("bluescanner");
     try {
       if (_scanning) {
         await _bluetooth.stopScan();
         debugPrint("scanning stoped");
-        setState(() {});
       } else {
+        while(blue.up_data.length==0) {
         await _bluetooth.startScan(pairedDevices: false);
         debugPrint("scanning started");
-        setState(() {
-          _scanning = true;
-        });
+        print("Data...........");
+          setState(() {
+            _scanning = true;
+            Fluttertoast.showToast(
+                msg: "scanning....",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.CENTER,
+                textColor: Colors.white,
+                fontSize: 18.0);
+          });
+        }
       }
     } on PlatformException catch (e) {
       debugPrint(e.toString());
@@ -67,6 +75,7 @@ class _blueState extends State<blue> {
 
   @override
   Widget build(BuildContext context) {
+    setState(() {});
     return SingleChildScrollView(
       child: SizedBox(
         height: 680,

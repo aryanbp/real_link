@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:real_link/login.dart';
 import 'package:real_link/main.dart';
 
@@ -80,7 +81,14 @@ class _aboutusState extends State<aboutus> {
                 ),
                 trailing: IconButton(
                   icon: Icon(Icons.arrow_forward_ios),
-                  onPressed: () {},
+                  onPressed: () {
+                    Fluttertoast.showToast(
+                        msg: "No Updates Available....",
+                        toastLength: Toast.LENGTH_LONG,
+                        gravity: ToastGravity.CENTER,
+                        textColor: Colors.white,
+                        fontSize: 18.0);
+                  },
                 ),
               ),
             ),
@@ -107,10 +115,7 @@ class _aboutusState extends State<aboutus> {
                 ),
                 trailing: IconButton(
                   icon: Icon(Icons.arrow_forward_ios),
-                  onPressed: () {
-                    print("Uwe");
-                    print(FirebaseAuth.instance.currentUser);
-                  },
+                  onPressed: () {},
                 ),
               ),
             ),
@@ -127,7 +132,7 @@ class _aboutusState extends State<aboutus> {
               padding: const EdgeInsets.only(top: 10.0),
               child: ListTile(
                 leading: Image.asset(
-                  "assets/set.png",
+                  "assets/ws.jpg",
                   height: 50,
                   width: 50,
                 ),
@@ -169,7 +174,7 @@ class _aboutusState extends State<aboutus> {
                   onPressed: () async {
                     await FirebaseAuth.instance.signOut();
                     Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) =>login()),
+                        MaterialPageRoute(builder: (context) => login()),
                         (route) => false);
                   },
                 ),

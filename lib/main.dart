@@ -81,8 +81,9 @@ class _homepageState extends State<homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: Colors.indigoAccent.shade100,
-        title: Text("Smart Home",style: TextStyle(color: Colors.black),),
+        title: Text("Real_Link",style: TextStyle(color: Colors.black),),
         automaticallyImplyLeading: true,
         actions: [
           IconButton(
