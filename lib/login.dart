@@ -103,6 +103,34 @@ class login extends StatelessWidget {
                     width: 80,
                     child: ElevatedButton(
                       onPressed: () async {
+
+                      FirebaseFirestore firestore =
+                      FirebaseFirestore.instance;
+                      CollectionReference collection =
+                      firestore.collection("users");
+
+                      Query query = collection.where("Name",
+                      isEqualTo: nameController.text);
+                      QuerySnapshot querySnapshot = await query.get();
+
+                      Query query1 = collection.where("Phone",
+                      isEqualTo: '+91'+phoneController.text);
+                      QuerySnapshot querySnapshot1 = await query1.get();
+
+                      if (querySnapshot.docs.length != 0) {
+                      DocumentSnapshot docSnapshot =
+                      querySnapshot.docs.first;
+                      Map jsonData =
+                      docSnapshot.data() as Map<String, dynamic>;
+                      if (jsonData['Phone']!='+91'+phoneController.text) {
+                      Fluttertoast.showToast(
+                      msg: "User Already Exists....",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.CENTER,
+                      textColor: Colors.white,
+                      fontSize: 18.0);
+                      }
+                      else{
                         String verificationId;
                         print('+91' + phoneController.text);
                         await FirebaseAuth.instance.verifyPhoneNumber(
@@ -117,7 +145,64 @@ class login extends StatelessWidget {
                           codeAutoRetrievalTimeout: (String _verificationId) {},
                         );
                         print("OTP Sent");
+                      }
+                      }
+                      else if(querySnapshot1.docs.length != 0) {
+                      DocumentSnapshot docSnapshot =
+                      querySnapshot1.docs.first;
+                      Map jsonData1 =
+                      docSnapshot.data() as Map<String, dynamic>;
+                      print(jsonData1['Name']);
+                      print(nameController.text);
+                      if (jsonData1['Name']!=nameController.text) {
+                      Fluttertoast.showToast(
+                      msg: "Using Registered Phone Number....",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.CENTER,
+                      textColor: Colors.white,
+                      fontSize: 18.0);
+                      }
+                      else{
+                        String verificationId;
+                        print('+91' + phoneController.text);
+                        await FirebaseAuth.instance.verifyPhoneNumber(
+                          phoneNumber: '+91' + phoneController.text,
+                          verificationCompleted:
+                              (PhoneAuthCredential credential) {},
+                          verificationFailed: (FirebaseAuthException e) {},
+                          codeSent: (String _verificationId, int? resendToken) {
+                            verificationId = _verificationId;
+                            verid = verificationId;
+                          },
+                          codeAutoRetrievalTimeout: (String _verificationId) {},
+                        );
+                        print("OTP Sent");
+                      }
+                      }
+                      else {
+                        String verificationId;
+                        print('+91' + phoneController.text);
+                        await FirebaseAuth.instance.verifyPhoneNumber(
+                          phoneNumber: '+91' + phoneController.text,
+                          verificationCompleted:
+                              (PhoneAuthCredential credential) {},
+                          verificationFailed: (FirebaseAuthException e) {},
+                          codeSent: (String _verificationId, int? resendToken) {
+                            verificationId = _verificationId;
+                            verid = verificationId;
+                          },
+                          codeAutoRetrievalTimeout: (String _verificationId) {},
+                        );
+                        print("OTP Sent");
+                      await FirebaseFirestore.instance
+                          .collection("users")
+                          .add({
+                      'Name': nameController.text,
+                      'Phone': '+91' + phoneController.text,
+                      });
+                      }
                       },
+
                       child: Text(
                         "GET OTP",
                         style: TextStyle(
@@ -142,89 +227,14 @@ class login extends StatelessWidget {
                     width: 130,
                     child: ElevatedButton(
                       onPressed: () async {
-                        print("Clicked....");
-                        FirebaseFirestore firestore =
-                            FirebaseFirestore.instance;
-                        CollectionReference collection =
-                            firestore.collection("users");
-
-                        Query query = collection.where("Name",
-                            isEqualTo: nameController.text);
-                        QuerySnapshot querySnapshot = await query.get();
-
-                        Query query1 = collection.where("Phone",
-                            isEqualTo: '+91'+phoneController.text);
-                        QuerySnapshot querySnapshot1 = await query1.get();
-                        print(querySnapshot1.docs.length);
-                        if (querySnapshot.docs.length != 0) {
-                          DocumentSnapshot docSnapshot =
-                              querySnapshot.docs.first;
-                          Map jsonData =
-                              docSnapshot.data() as Map<String, dynamic>;
-print(jsonData['Name']);
-print(nameController.text);
-print(jsonData['Name'] == nameController.text);
-                          if (jsonData['Phone']!='+91'+phoneController.text) {
-                            Fluttertoast.showToast(
-                                msg: "User Already Exists....",
-                                toastLength: Toast.LENGTH_LONG,
-                                gravity: ToastGravity.CENTER,
-                                textColor: Colors.white,
-                                fontSize: 18.0);
-                          }
-                          else{
-                            PhoneAuthCredential credential =
-                            PhoneAuthProvider.credential(
-                                verificationId: verid,
-                                smsCode: otpController.text);
-                            await FirebaseAuth.instance
-                                .signInWithCredential(credential);
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => homepage()));
-                          }
-                        }
-                        else if(querySnapshot1.docs.length != 0) {
-                          DocumentSnapshot docSnapshot =
-                              querySnapshot1.docs.first;
-                          Map jsonData1 =
-                          docSnapshot.data() as Map<String, dynamic>;
-                          print(jsonData1['Name']);
-                          print(nameController.text);
-                          if (jsonData1['Name']!=nameController.text) {
-                            Fluttertoast.showToast(
-                                msg: "Using Registered Phone Number....",
-                                toastLength: Toast.LENGTH_LONG,
-                                gravity: ToastGravity.CENTER,
-                                textColor: Colors.white,
-                                fontSize: 18.0);
-                          }
-                          else{
-                            PhoneAuthCredential credential =
-                            PhoneAuthProvider.credential(
-                                verificationId: verid,
-                                smsCode: otpController.text);
-                            await FirebaseAuth.instance
-                                .signInWithCredential(credential);
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => homepage()));
-                          }
-                        }
-                        else {
-                          PhoneAuthCredential credential =
-                              PhoneAuthProvider.credential(
-                                  verificationId: verid,
-                                  smsCode: otpController.text);
-                          await FirebaseAuth.instance
-                              .signInWithCredential(credential);
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => homepage()));
-                          await FirebaseFirestore.instance
-                              .collection("users")
-                              .add({
-                            'Name': nameController.text,
-                            'Phone': '+91' + phoneController.text,
-                          });
-                        }
+                        PhoneAuthCredential credential =
+                        PhoneAuthProvider.credential(
+                            verificationId: verid,
+                            smsCode: otpController.text);
+                        await FirebaseAuth.instance
+                            .signInWithCredential(credential);
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => homepage()));
                       },
                       child: Text(
                         "LOGIN",

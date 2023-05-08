@@ -42,6 +42,7 @@ class _blueState extends State<blue> {
       } else {
         while(blue.up_data.length==0) {
         await _bluetooth.startScan(pairedDevices: false);
+        await Future.delayed(const Duration(seconds: 10));
         debugPrint("scanning started");
         print("Data...........");
           setState(() {
